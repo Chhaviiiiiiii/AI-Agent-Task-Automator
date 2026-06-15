@@ -6,6 +6,8 @@ import com.aiagent.entity.Task;
 import com.aiagent.entity.User;
 import com.aiagent.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -41,6 +43,19 @@ public class TaskService {
             .collect(Collectors.toList());
     }
 
+    public Page<Task> getUserTasksPaginated(User user, Pageable pageable) {
+        return taskRepository.findByUserOrderByCreatedAtDesc(user, pageable);
+    }
+
+    public Task updateTask(Task task, TaskRequest request) {
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        if (request.getPriority() != null) {
+            task.setPriority(Task.Priority.valueOf(request.getPriority().toUpperCase()));
+        }
+        return taskRepository.save(task);
+    }
+
     public Task updateTaskStatus(Task task, Task.TaskStatus status) {
         task.setStatus(status);
         if (status == Task.TaskStatus.COMPLETED) {
@@ -51,6 +66,19 @@ public class TaskService {
 
     public void deleteTask(Task task) {
         taskRepository.delete(task);
+    }
+
+    public Task saveTask(Task task) {
+        return taskRepository.save(task);
+    }
+
+    public List<TaskResponse> searchTasks(User user, String query) {
+        return taskRepository.findByUserOrderByCreatedAtDesc(user)
+            .stream()
+            .filter(task -> task.getTitle().toLowerCase().contains(query.toLowerCase()) ||
+                           (task.getDescription() != null && task.getDescription().toLowerCase().contains(query.toLowerCase())))
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
     }
 
     private TaskResponse mapToResponse(Task task) {

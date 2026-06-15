@@ -37,6 +37,11 @@ jwt:
   secret: mySecretKeyForJWTTokenGenerationAndValidationPurposeOnly
   expiration: 86400000
 
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:}
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+
 server:
   port: 8080
   servlet:
